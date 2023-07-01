@@ -47,14 +47,36 @@ public class ReadJarResponse {
         String tradingSymbol = new String(packetData, 4, 30).trim();
         long lastTradedPrice = getLongFromLittleEndian(packetData, 50);
         long lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
+        long totalTradedVolume = getLongFromLittleEndian(packetData, 66);
+        long bestBid=getLongFromLittleEndian(packetData, 74);
+        long bestBidQty=getLongFromLittleEndian(packetData, 82);
+        long bestAsk=getLongFromLittleEndian(packetData, 90);
+        long bestAskQty=getLongFromLittleEndian(packetData, 98);
+        long openInterest=getLongFromLittleEndian(packetData, 106);
+        String option="";
+        if(tradingSymbol.endsWith("CE"))
+        {
+            option="Call";
+        }
+        else if(tradingSymbol.endsWith("PE"))
+        {
+            option="Put";
+        }
         // Extract other fields as needed
 
         // Calculate implied volatility (IV) using the Black Scholes formula
         double impliedVolatility = calculateImpliedVolatility(lastTradedPrice, lastTradedQuantity);
 
         // Do further processing or display the calculated IV
+        System.out.println("Option: "+option);
         System.out.println("Symbol: " + tradingSymbol);
         System.out.println("Last Traded Price: " + lastTradedPrice);
+        System.out.println("Total Traded Volume: "+totalTradedVolume);
+        System.out.println("Best Bid: "+bestBid);
+        System.out.println("Best Ask: "+bestAsk);
+        System.out.println("Best Bid Quantity: "+bestBidQty);
+        System.out.println("Best Ask Quantity: "+bestAskQty);
+        System.out.println("Open Interest: "+openInterest);
         System.out.println("Implied Volatility: " + impliedVolatility);
         System.out.println();
     }
