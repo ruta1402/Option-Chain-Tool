@@ -65,16 +65,18 @@ function processMarketDataPacket(packetData, packetSize) {
     const tradingSymbol = packetData.toString('utf8', 4, 34).replace(/\s/g, '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42);
-    const lastTradedPrice = getLongFromLittleEndian(packetData, 50);
+    const epochTime = new Date(timeStamp * 1000);
+    const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
     const totalTradedVolume = getLongFromLittleEndian(packetData, 66);
-    const bestBid = getLongFromLittleEndian(packetData, 74);
+    const bestBid = getLongFromLittleEndian(packetData, 74) / 100;
     const bestBidQty = getLongFromLittleEndian(packetData, 82);
-    const bestAsk = getLongFromLittleEndian(packetData, 90);
+    const bestAsk = getLongFromLittleEndian(packetData, 90) / 100;
     const bestAskQty = getLongFromLittleEndian(packetData, 98);
     const openInterest = getLongFromLittleEndian(packetData, 106);
-    const prevClosePrice = getLongFromLittleEndian(packetData, 114);
+    const prevClosePrice = getLongFromLittleEndian(packetData, 114) / 100;
     const prevOpenInterest = getLongFromLittleEndian(packetData, 122);
+
     let option = '';
 
     // Extract other fields as needed
@@ -113,7 +115,18 @@ function processMarketDataPacket(packetData, packetSize) {
     var strikePriceStr = tradingSymbol.slice(index.length + 7, tradingSymbol.length).replace(/[^0-9]/g, '');
     var strikePriceInt = parseInt(strikePriceStr);
 
-    // long strikePrice=Long.parseLong(strikePriceStr);
+    //change in oi
+    var chngInOI = openInterest - prevOpenInterest;
+
+    //time to maturity
+
+    const now = new Date(); // Current date and time
+    const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 30); // Set time to 15:30
+
+    const exp1530epoch = Math.floor(targetTime.getTime() / 1000); // Convert to epoch time in seconds
+
+
+    var timeToMaturity = exp1530epoch - epochTime;
 
     // Do further processing or display the extracted data
     console.log('Symbol:', tradingSymbol);
@@ -121,6 +134,8 @@ function processMarketDataPacket(packetData, packetSize) {
     console.log("Expiry Date: ", expiryDate);
     console.log("Strike Price: ", strikePriceInt);
     console.log('Time Stamp:', timeStamp);
+    console.log("Time Stamp in epoch: ", epochTime);
+    console.log("Time to Maturity: ".timeToMaturity);
     console.log('Sequence:', sequenceNumber);
     console.log('Last Traded Price:', lastTradedPrice);
     console.log('Total Traded Volume:', totalTradedVolume);
@@ -131,6 +146,7 @@ function processMarketDataPacket(packetData, packetSize) {
     console.log('Open Interest:', openInterest);
     console.log('Previous Close Price:', prevClosePrice);
     console.log('Previous Open Interest:', prevOpenInterest);
+    console.log("Change in OI: ", chngInOI);
     console.log("");
 
     // Implement the rest of the processing logic as needed
