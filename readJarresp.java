@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
-public class readJarresp {
+public class ReadJarResponse {
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 9010;
 
