@@ -154,6 +154,16 @@ public class MarketDataService {
         marketData.setIndex(index);
         marketData.setOption(option);
         marketData.setSequenceNumber(sequenceNumber);
+        marketData.setLastTradedPrice(lastTradedPrice);
+        marketData.setTotalTradedVolume(totalTradedVolume);
+        marketData.setBestAsk(bestAsk);
+        marketData.setBestAskQty(bestAskQty);
+        marketData.setBestBid(bestBid);
+        marketData.setBestBidQty(bestBidQty);
+        marketData.setOpenInterest(openInterest);
+        marketData.setPrevClosePrice(prevClosePrice);
+        marketData.setPrevOpenInterest(prevOpenInterest);
+        marketData.setImpliedVolatility(impliedVolatility);
     }
 
     private static long getLongFromLittleEndian(byte[] data, int offset) {
