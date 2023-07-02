@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 public class readJarresp {
     private static final String SERVER_HOST = "localhost";
@@ -9,6 +11,7 @@ public class readJarresp {
 
     public static void main(String[] args) {
         try {
+
             Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
             System.out.println("Connected to the server on port " + SERVER_PORT);
 
@@ -90,11 +93,14 @@ public class readJarresp {
         double underlyingPrice = lastTradedPrice / 100.0; // Convert to the appropriate unit
         double strikePrice = ...; // Provide the actual strike price
         double riskFreeRate = ...; // Provide the actual risk-free interest rate
-        double timeToMaturity = ...; // Provide the actual time to maturity
-        double impliedVolatility = calculateImpliedVolatility(underlyingPrice, strikePrice, riskFreeRate, timeToMaturity);
+        double timeToMaturity = calculateTimeToMaturity(tradingSymbol);
+        double impliedVolatility = 0.0; // Default value
+
+        if (timeToMaturity >= 0) {
+            impliedVolatility = calculateImpliedVolatility(underlyingPrice, strikePrice, riskFreeRate, timeToMaturity);
+        }
 
         // Do further processing or display the calculated IV
-
         System.out.println("Symbol: " + tradingSymbol);
         System.out.println("Index: " + index);
         System.out.println("Option: " + option);
@@ -120,6 +126,26 @@ public class readJarresp {
             value |= (data[offset + i] & 0xFF);
         }
         return value;
+    }
+
+    private static double calculateTimeToMaturity(String tradingSymbol) {
+        // Get the current date and time in IST (Indian Standard Time)
+        LocalDateTime currentDateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+
+        // Parse the tradingSymbol to extract the expiry date and time
+        String expiryDateStr = tradingSymbol.substring(tradingSymbol.length() - 7);
+        String expiryDateTimeStr = expiryDateStr + " 15:30"; // Expiry time assumed to be 15:30 IST
+        LocalDateTime expiryDateTime = LocalDateTime.parse(expiryDateTimeStr,
+                DateTimeFormatter.ofPattern("yyMMdd HH:mm"));
+
+        // Calculate the time difference between the current time and expiry time
+        Duration duration = Duration.between(currentDateTime, expiryDateTime);
+        long timeToMaturityMinutes = duration.toMinutes();
+
+        // Convert time to maturity to years
+        double timeToMaturityYears = timeToMaturityMinutes / (365.25 * 24 * 60); // Assuming 365.25 days in a year
+
+        return timeToMaturityYears;
     }
 
     private static double calculateImpliedVolatility(double underlyingPrice, double strikePrice, double riskFreeRate,
