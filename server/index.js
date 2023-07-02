@@ -1,47 +1,19 @@
-import React, {useEffect,useState} from 'react'
-// const io = require('socket.io-client');
-const SERVER_HOST = 'localhost';
-const SERVER_PORT = 9011;
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 8989
 const net = require('net');
 
-export default function Socket() {
-  
-  //   useEffect(() => {
-  //     const socket = io('http://localhost:9011');
-      
-  //     socket.on('connect', () => {
-  //       console.log('Socket connected');
-  
-  //       // Send an initial request packet
-  //       socket.emit('initialRequest', 1);
-  //       console.log('Initial request sent');
-  //     });
-  
-  //     socket.on('marketData', (data) => {
-  //       // Process the market data packet
-  //       processMarketDataPacket(data);
-  //     });
-  
-  //     socket.on('disconnect', () => {
-  //       console.log('Socket disconnected');
-  //     });
-  
-  //     return () => {
-  //       socket.disconnect();
-  //     };
-  //   }, []);
-  
-  //   function processMarketDataPacket(data) {
-  //     // Process the market data packet
-  //     console.log('Received market data packet:', data);
-  //   }
-  
-  // function processMarketDataPacket(data) {
-  //   // Process the market data packet
-  //   console.log('Received market data packet:', data);
-  // }
+const cors = require('cors')
+app.use(cors())
+app.use(express.json())
 
-  useEffect(()=>{
+const SERVER_HOST = 'localhost';
+const SERVER_PORT = 9011;
+
+// Define a route to handle the socket connection and market data processing
+app.get('/market-data', (req, res) => {
+  try {
+    // Establish a socket connection to the server
     const socket = new net.Socket();
     socket.connect(SERVER_PORT, SERVER_HOST, () => {
       console.log(`Connected to the server on port ${SERVER_PORT}`);
@@ -50,6 +22,8 @@ export default function Socket() {
       socket.write(Buffer.from([1])); // Send a single byte as the initial request
       console.log('Initial request sent');
     });
+
+    // Receive and process market data packets
     const buffer = Buffer.alloc(130); // market data packet size is 130 bytes
     socket.on('data', (data) => {
       // Read a market data packet
@@ -57,19 +31,38 @@ export default function Socket() {
       const bytesRead = data.length;
 
       // Process the market data packet
-      processMarketDataPacket(buffer, bytesRead);
-      
+      var fin =processMarketDataPacket(buffer, bytesRead);
+      // const jsonData = buffer.toString('utf8', 4, buffer.length);
+      // const parsedData = JSON.parse(jsonData);
+      // res.json({data:jsonData})
+      // console.log(jsonData);
     });
+
+    // Handle the end of the socket connection
     socket.on('end', () => {
       console.log('Disconnected from the server');
-      
+      res.send('Socket connection closed');
     });
 
+    // Handle socket errors
+    socket.on('end', () => {
+        console.log('Disconnected from the server');
+        res.send('Socket connection closed');
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
-  },[])
-  function processMarketDataPacket(packetData, packetSize) {
+app.listen(port, () => {
+    console.log(`app listening at http://localhost:${port}`)
+})
+
+
+function processMarketDataPacket(packetData, packetSize) {
     // Extract relevant fields from the packet
-    const tradingSymbol = packetData.toString('utf8', 4, 34).trim();
+    const tradingSymbol = packetData.toString('utf8', 4, 34).replace(/\s/g, '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42);
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50);
@@ -83,17 +76,57 @@ export default function Socket() {
     const prevClosePrice = getLongFromLittleEndian(packetData, 114);
     const prevOpenInterest = getLongFromLittleEndian(packetData, 122);
     let option = '';
-  
+    
     // Extract other fields as needed
     if (tradingSymbol.endsWith('CE')) {
       option = 'Call';
     } else if (tradingSymbol.endsWith('PE')) {
       option = 'Put';
     }
-  
+    //Index
+    var a="ALLBANKS";
+    var b="MAINIDX";
+    var c="FINANCIAL";
+    var d="MIDCAPS";
+
+    var len_symbol=tradingSymbol.length;
+
+    var index="";
+
+    if(tradingSymbol.startsWith(a))
+    {   
+        index=a;
+    }
+    else if(tradingSymbol.startsWith(b))
+    {
+        index=b;
+    }
+    else if(tradingSymbol.startsWith(c))
+    {
+        index=c;
+    }
+    else if(tradingSymbol.startsWith(d))
+    {
+        index=d;   
+    }
+
+    //to check why array out of bound exception
+
+    //expiry date
+    
+    var expiryDate=tradingSymbol.substring(index.length,index.length+7);
+
+    //strike price
+    var strikePriceStr = tradingSymbol.slice(index.length+7,tradingSymbol.length).replace ( /[^0-9]/g, '' );
+    var strikePriceInt = parseInt(strikePriceStr);
+    
+    // long strikePrice=Long.parseLong(strikePriceStr);
+    
     // Do further processing or display the extracted data
     console.log('Symbol:', tradingSymbol);
-    console.log('Option:', option);
+    console.log("Index: ",index);
+    console.log("Expiry Date: ",expiryDate);
+    console.log("Strike Price: ",strikePriceInt);
     console.log('Time Stamp:', timeStamp);
     console.log('Sequence:', sequenceNumber);
     console.log('Last Traded Price:', lastTradedPrice);
@@ -105,8 +138,8 @@ export default function Socket() {
     console.log('Open Interest:', openInterest);
     console.log('Previous Close Price:', prevClosePrice);
     console.log('Previous Open Interest:', prevOpenInterest);
-    console.log();
-  
+    console.log("");
+    
     // Implement the rest of the processing logic as needed
   }
   
@@ -118,7 +151,3 @@ export default function Socket() {
     }
     return value;
   }
-  return (
-    <div>Your component content here</div>
-  )
-}
