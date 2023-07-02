@@ -10,7 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.hackathon.hackathon.model.MarketData;
-import org.springframework.data.mongodb.core.MongoTemplate;
+
 
 @Service
 public class MarketDataService {
@@ -18,11 +18,7 @@ public class MarketDataService {
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 9010;
 
-    private final MongoTemplate mongoTemplate;
-
-    public MarketDataService(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
-    }
+    
 
     public List<MarketData> getMarketData() {
         List<MarketData> marketDataList = new ArrayList<>();
