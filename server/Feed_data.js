@@ -2,10 +2,64 @@
 const net = require('net');
 const SERVER_HOST = 'localhost';
 const SERVER_PORT = 9011;
+const { DateTime } = require('luxon');
+const { normal } = require('jstat');
+
+// function calculate_d1_d2(S, K, r, T, sigma) {
+//   const d1 = (Math.log(S / K) + (r + (sigma**2) / 2) * T) / (sigma * Math.sqrt(T));
+//   const d2 = d1 - sigma * Math.sqrt(T);
+//   return [d1, d2];
+// }
+
+// function calculate_implied_volatility(S, K, r, T, option_price, option_type) {
+//   const epsilon = 0.5;
+//   const max_iterations = 100;
+
+//   let sigma = 0.5;
+
+//   for (let i = 0; i < max_iterations; i++) {
+//     const [d1, d2] = calculate_d1_d2(S, K, r, T, sigma);
+
+//     let option_price_calculated;
+//     if (option_type.toLowerCase() === 'call') {
+//       option_price_calculated = S * normal.cdf(d1) - K * Math.exp(-r * T) * normal.cdf(d2);
+//     } else if (option_type.toLowerCase() === 'put') {
+//       option_price_calculated = K * Math.exp(-r * T) * normal.cdf(-d2) - S * normal.cdf(-d1);
+//     } else {
+//       throw new Error("Invalid option type. Please specify 'call' or 'put'.");
+//     }
+
+//     const diff = option_price_calculated - option_price;
+
+//     if (Math.abs(diff) < epsilon) {
+//       return sigma;
+//     }
+
+//     const vega = S * normal.pdf(d1) * Math.sqrt(T);
+//     sigma -= diff / vega;
+//   }
+
+//   throw new Error("Implied volatility calculation did not converge.");
+// }
+
+// // Example usage
+// const S = 50; // Underlying price
+// const K = 55; // Strike price
+// const r = 0.05; // Risk-free interest rate (5% as given)
+// const expiry_date_str = '04JUL23'; // Expiry date
+// const expiry_date = DateTime.fromFormat(expiry_date_str, "ddMMMyy");
+// const T = (expiry_date.diffNow('days').days) / 365; // Time to expiry in years
+// const option_price = 50; // Option price (LTP)
+// const option_type = 'call'; // Option type ('call' or 'put')
+
+// const implied_volatility = calculate_implied_volatility(S, K, r, T, option_price, option_type);
+// console.log("Implied Volatility:", implied_volatility);
+
+
 
 function processMarketDataPacket(packetData, packetSize) {
     // Extract relevant fields from the packet
-    const tradingSymbol = packetData.toString('utf8', 4, 34).replace(/\s/g, '');
+    const tradingSymbol = packetData.toString('utf8', 4, 34).replaceAll('\x00','');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42);
     const epochTime = new Date(timeStamp * 1000);
@@ -20,14 +74,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const prevClosePrice = getLongFromLittleEndian(packetData, 114) / 100;
     const prevOpenInterest = getLongFromLittleEndian(packetData, 122);
 
-    let option = '';
- 
-    // Extract other fields as needed
-    if (tradingSymbol.endsWith('CE')) {
-        option = 'Call';
-    } else if (tradingSymbol.endsWith('PE')) {
-        option = 'Put';
-    }
+    
     //Index
     var a = "ALLBANKS";
     var b = "MAINIDX";
@@ -57,7 +104,15 @@ function processMarketDataPacket(packetData, packetSize) {
     //strike price
     var strikePriceStr = tradingSymbol.slice(index.length + 7, tradingSymbol.length).replace(/[^0-9]/g, '');
     var strikePriceInt = parseInt(strikePriceStr);
-
+    var options = tradingSymbol.slice(index.length + 7, tradingSymbol.length).replace(/[^A-Z]/g, '');
+    let option = '';
+ 
+    // Extract other fields as needed
+    if (options == 'CE') {
+        option = 'Call';
+    } else if (options == 'PE') {
+        option = 'Put';
+    }
     //change in oi
     var chngInOI = openInterest - prevOpenInterest;
 
@@ -71,25 +126,53 @@ function processMarketDataPacket(packetData, packetSize) {
 
     // var timeToMaturity = (exp1530epoch - epochTime)<0?0:exp1530epoch - epochTime;
     var timeToMaturity = exp1530epoch - epochTime
+    // if(option!==''){
+
+    //     var implied_volatility = calculate_implied_volatility(bestBid,bestAsk , 0.05,timeToMaturity , lastTradedPrice, option);
+    // }
     // Do further processing or display the extracted data
-    console.log('Symbol:', tradingSymbol);
-    console.log("Index: ", index);
-    console.log("Expiry Date: ", expiryDate);
-    console.log("Strike Price: ", strikePriceInt);
-    console.log('Time Stamp:', timeStamp);
-    console.log("Time Stamp in epoch: ", epochTime);
-    console.log("Time to Maturity: ",timeToMaturity);
-    console.log('Sequence:', sequenceNumber);
-    console.log('Last Traded Price:', lastTradedPrice);
-    console.log('Total Traded Volume:', totalTradedVolume);
-    console.log('Best Bid:', bestBid);
-    console.log('Best Ask:', bestAsk);
-    console.log('Best Bid Quantity:', bestBidQty);
-    console.log('Best Ask Quantity:', bestAskQty);
-    console.log('Open Interest:', openInterest);
-    console.log('Previous Close Price:', prevClosePrice);
-    console.log('Previous Open Interest:', prevOpenInterest);
-    console.log("Change in OI: ", chngInOI);
+    const data ={
+        "Symbol": tradingSymbol,
+        "Option": option,
+        "Index  ": index,
+        "Expiry Date": expiryDate,
+        "Strike Price":strikePriceInt,
+        "Time Stamp":timeStamp,
+        "Time Stamp in epoch":epochTime,
+        "Time to Maturity": timeToMaturity,
+        "Sequence":sequenceNumber,
+        "Last Traded Price": lastTradedPrice,
+        "Total Traded Volume":totalTradedVolume,
+        "Best Bid":bestBid,
+        "Best Ask":bestAsk,
+        "Best Bid Quantity":bestBidQty,
+        "Open Interest":openInterest,
+        "Previous Close Price":prevClosePrice,
+        "Previous Open Interest": prevOpenInterest,
+        "Change in OI":chngInOI
+
+    }
+    // console.log(data);
+    return data
+    // console.log('Symbol:', tradingSymbol);
+    // console.log("Option: ",option);
+    // console.log("Index: ", index);
+    // console.log("Expiry Date: ", expiryDate);
+    // console.log("Strike Price: ", strikePriceInt);
+    // console.log('Time Stamp:', timeStamp);
+    // console.log("Time Stamp in epoch: ", epochTime);
+    // console.log("Time to Maturity: ",timeToMaturity);
+    // console.log('Sequence:', sequenceNumber);
+    // console.log('Last Traded Price:', lastTradedPrice);
+    // console.log('Total Traded Volume:', totalTradedVolume);
+    // console.log('Best Bid:', bestBid);
+    // console.log('Best Ask:', bestAsk);
+    // console.log('Best Bid Quantity:', bestBidQty);
+    // console.log('Best Ask Quantity:', bestAskQty);
+    // console.log('Open Interest:', openInterest);
+    // console.log('Previous Close Price:', prevClosePrice);
+    // console.log('Previous Open Interest:', prevOpenInterest);
+    // console.log("Change in OI: ", chngInOI);
     console.log("");
 
     // Implement the rest of the processing logic as needed
@@ -124,11 +207,12 @@ function socketConnection(){
         const bytesRead = data.length;
     
         // Process the market data packet
-        processMarketDataPacket(buffer, bytesRead);
-        // const jsonData = buffer.toString('utf8', 4, buffer.length);
+        const fin = processMarketDataPacket(buffer, bytesRead);
+        // const jsonData = buffer.toString('utf8', 4, bytesRead);
         // const parsedData = JSON.parse(jsonData);
-        // res.json({data:jsonData})
-        // console.log(jsonData);
+        // console.log(parsedData)
+        // console.log(fin);
+        return fin
       });
     
       // Handle the end of the socket connection
