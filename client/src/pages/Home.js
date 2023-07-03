@@ -81,13 +81,24 @@ export default function Home() {
     };
   }, []);
     
-  const [symbol, setSymbol] = React.useState('');
+  const [symbol, setSymbol] = React.useState('ALLBANKS');
     const [expiry ,setExpiry] = React.useState('');
     const [prize ,setPrize] = React.useState(null);
+    const [propD,setPropD] = React.useState(allbanksData)
 
   const handleSybl = (e) => {
     const { value} = e.target;
     setSymbol(value);
+    if(value===sbl[0]){
+      setPropD(allbanksData)
+    }else if(value===sbl[1]){
+      setPropD(mainIdxData)
+    }else if(value===sbl[2]){
+      setPropD(finData)
+    }else if(value===sbl[3]){
+      setPropD(midCapsData)
+    }
+
   };
   const handleExpiry = (e) => {
     const { value} = e.target;
@@ -168,7 +179,7 @@ const prizes = [
 
         </div>
         <div className='content'>
-            <Data propData = {allbanksData}/>
+            <Data2 propData = {allbanksData}/>
         </div>
     </div>
   )
