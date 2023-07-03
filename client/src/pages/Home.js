@@ -34,7 +34,7 @@ export default function Home() {
     
     // Receive data from the server
     socket.on('data', (data) => {
-      // console.log(data.Index);
+      console.log(data);
       if(data.Index === sbl[0] ){
         setAllbanksData(prevData => [...prevData,data])
         if(data.Expiry_Date !== ''){
@@ -167,7 +167,7 @@ export default function Home() {
           label="Option Type"
           onChange={handleOption}
         >
-          {["All",'Call','Put'].map((name) => (
+          {["All",'call','put'].map((name) => (
             <MenuItem key={name} value={name}>
               {name}
             </MenuItem>

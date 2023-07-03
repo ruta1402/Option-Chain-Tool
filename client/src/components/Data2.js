@@ -20,7 +20,7 @@ const columns = [
       maxWidth: 100,
     },
     {
-      field: 'IV1',
+      field: 'Implied_Volatility',
       headerName: 'IV',
       type: 'number',
       maxWidth: 70,
@@ -56,7 +56,7 @@ const columns = [
       maxWidth: 110,
     },
     {
-      field: 'ASKQTY1',
+      field: 'Best_Ask_Quantity',
       headerName: 'ASK QTY',
       type: 'number',
       maxWidth: 110,
@@ -98,7 +98,7 @@ const columns = [
   
   
 export default function Data2({propData}) {
-  console.log(propData);
+  // console.log(propData);
   const [rows ,setRows]= useState([])
   useEffect(()=>{
     setRows(propData)

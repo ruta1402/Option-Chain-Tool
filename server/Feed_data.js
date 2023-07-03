@@ -198,9 +198,9 @@ function processMarketDataPacket(packetData, packetSize) {
             "Previous_Close_Price": prevClosePrice,
             "Previous_Open_Interest": prevOpenInterest,
             "Change_in_OI": chngInOI,
-            "Last Traded Quantity": lastTradedQuantity,
-            "Best Ask Quantity": bestAskQty,
-            "Implied Volatility": impliedVolatility
+            "Last_Traded_Quantity": lastTradedQuantity,
+            "Best_Ask_Quantity": bestAskQty,
+            "Implied_Volatility": impliedVolatility
 
         }
         // console.log(data);
