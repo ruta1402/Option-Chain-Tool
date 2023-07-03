@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 
 
@@ -127,7 +127,7 @@ const columns = [
   ];
   
   const rows = [
-    { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
+    { id: 1, OI1: 'Snow', firstName: 'Jon', age: 35 },
     { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
     { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
     // { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
@@ -175,7 +175,33 @@ const columns = [
       ],
     },
   ];
-export default function Data() {
+export default function Data({propData}) {
+  console.log(propData.length);
+  const [rows ,setRows]= useState([])
+  useEffect(()=>{
+    setRows(propData)
+    // propData.map((data,index)=>{
+    //   console.log(index)
+    //   if(data.option==="Put"){
+    //     var row = {
+          
+    //       "STRIKE": data.Strike_Price,
+    //       "BIDQTY2":data.Best_Bid_Quantity,
+    //      "BID2":data.Best_Bid,
+    //      "ASK2":data.Best_Ask,
+    //      "ASKQTY2":"-",
+    //      "CHNG2":'-',
+    //      "LTP2":data.Last_Traded_Price,
+    //      "IV2":"-",
+    //      "volume2":data.Total_Traded_Volume,
+    //      "ChangeInOI2":data.Change_in_OI,
+    //      "OI2":data.Open_Interest
+    //     }
+    //   }
+    //   setRows([...rows,row])
+    // });
+  },[propData])
+  
   return (
     <div className='mainpage' style={{display:'flex', justifyContent: 'center', alignItems: 'center'}}>
     <div style={{ height: '100vh', width: '100%' }}>
