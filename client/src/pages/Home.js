@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import './styles/home.css';
+import Data2 from '../components/Data2';
 export default function Home() {
   const SERVER_HOST = 'http://localhost:8989';
   const sbl = [
@@ -23,6 +24,8 @@ export default function Home() {
   const [exp1,setExp1]= useState([])
   const [exp2,setExp2]= useState([])
   const [exp3,setExp3]= useState([])
+  
+  
   useEffect(() => {
     const socket = io(SERVER_HOST);
     socket.on('connect', () => {
@@ -168,7 +171,7 @@ const prizes = [
 
         </div>
         <div className='content'>
-            <Data propData = {allbanksData}/>
+            <Data2 propData = {allbanksData}/>
         </div>
     </div>
   )

@@ -5,7 +5,7 @@ const { DateTime } = require('luxon');
 const { normal } = require('jstat');
 const socketIO = require('socket.io');
 
-const BlackScholes = require('black-scholes');
+const bs = require("black-scholes");
 
 // Set the inputs
 const optionPrice = 10.0; // Replace with the actual option price
@@ -15,69 +15,19 @@ const timeToExpiration = 0.5; // Replace with the time to expiration in years
 const riskFreeRate = 0.05; // Replace with the risk-free interest rate
 
 // Calculate implied volatility
-const impliedVolatility = BlackScholes.impliedVolatility(
+const impliedVolatility = bs.blackScholes(
     optionPrice,
     underlyingPrice,
     strikePrice,
     timeToExpiration,
-    riskFreeRate
+    riskFreeRate,
+    "put"
 );
 
 // Output the result
 console.log('Implied Volatility:', impliedVolatility);
 
 
-
-
-// function calculate_d1_d2(S, K, r, T, sigma) {
-//   const d1 = (Math.log(S / K) + (r + (sigma**2) / 2) * T) / (sigma * Math.sqrt(T));
-//   const d2 = d1 - sigma * Math.sqrt(T);
-//   return [d1, d2];
-// }
-
-// function calculate_implied_volatility(S, K, r, T, option_price, option_type) {
-//   const epsilon = 0.5;
-//   const max_iterations = 100;
-
-//   let sigma = 0.5;
-
-//   for (let i = 0; i < max_iterations; i++) {
-//     const [d1, d2] = calculate_d1_d2(S, K, r, T, sigma);
-
-//     let option_price_calculated;
-//     if (option_type.toLowerCase() === 'call') {
-//       option_price_calculated = S * normal.cdf(d1) - K * Math.exp(-r * T) * normal.cdf(d2);
-//     } else if (option_type.toLowerCase() === 'put') {
-//       option_price_calculated = K * Math.exp(-r * T) * normal.cdf(-d2) - S * normal.cdf(-d1);
-//     } else {
-//       throw new Error("Invalid option type. Please specify 'call' or 'put'.");
-//     }
-
-//     const diff = option_price_calculated - option_price;
-
-//     if (Math.abs(diff) < epsilon) {
-//       return sigma;
-//     }
-
-//     const vega = S * normal.pdf(d1) * Math.sqrt(T);
-//     sigma -= diff / vega;
-//   }
-
-//   throw new Error("Implied volatility calculation did not converge.");
-// }
-
-// // Example usage
-// const S = 50; // Underlying price
-// const K = 55; // Strike price
-// const r = 0.05; // Risk-free interest rate (5% as given)
-// const expiry_date_str = '04JUL23'; // Expiry date
-// const expiry_date = DateTime.fromFormat(expiry_date_str, "ddMMMyy");
-// const T = (expiry_date.diffNow('days').days) / 365; // Time to expiry in years
-// const option_price = 50; // Option price (LTP)
-// const option_type = 'call'; // Option type ('call' or 'put')
-
-// const implied_volatility = calculate_implied_volatility(S, K, r, T, option_price, option_type);
-// console.log("Implied Volatility:", implied_volatility);
 
 var ida = 0
 var idb = 0
@@ -137,7 +87,7 @@ function processMarketDataPacket(packetData, packetSize) {
 
     //strike price
     var strikePriceStr = tradingSymbol.slice(index.length + 7, tradingSymbol.length).replace(/[^0-9]/g, '');
-    var strikePriceInt = parseInt(strikePriceStr);
+    var strikePriceInt = parseFloat(strikePriceStr)/100;
     var options = tradingSymbol.slice(index.length + 7, tradingSymbol.length).replace(/[^A-Z]/g, '');
     let option = '';
 
@@ -186,7 +136,8 @@ function processMarketDataPacket(packetData, packetSize) {
             "Open_Interest": openInterest,
             "Previous_Close_Price": prevClosePrice,
             "Previous_Open_Interest": prevOpenInterest,
-            "Change_in_OI": chngInOI
+            "Change_in_OI": chngInOI,
+            "Best_Ask_Quantity": bestAskQty
 
         }
         // console.log(data);
@@ -205,21 +156,22 @@ function getLongFromLittleEndian(data, offset) {
     return value;
 }
 
-function socketConnection(server) {
-
+function socketConnection(server){
     const io = socketIO(server, {
         cors: {
             origin: "http://localhost:3000",
             methods: ['GET', "POST"],
         }
     });
-
+    
     io.on('connection', (socket2) => {
-
+        
+        
 
         // Send data to the client
 
         try {
+            
             // Establish a socket connection to the server
             const socket = new net.Socket();
             socket.connect(SERVER_PORT, SERVER_HOST, () => {
@@ -239,6 +191,7 @@ function socketConnection(server) {
 
                 // Process the market data packet
                 const fin = processMarketDataPacket(buffer, bytesRead);
+                
                 socket2.emit('data', fin);
             });
 

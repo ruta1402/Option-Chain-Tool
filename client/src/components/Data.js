@@ -175,8 +175,10 @@ const columns = [
       ],
     },
   ];
+
+  
 export default function Data({propData}) {
-  console.log(propData.length);
+  console.log(propData);
   const [rows ,setRows]= useState([])
   useEffect(()=>{
     setRows(propData)
