@@ -5,12 +5,7 @@ import { DataGrid } from '@mui/x-data-grid';
 
 
 const columns = [
-    {
-        field: 'Option',
-        headerName: 'Option',
-        
-        maxWidth: 110,
-      },
+    { field: 'Index', headerName: 'Symbol', maxWidth: 110 },
     { field: 'Open_Interest', headerName: 'OI', maxWidth: 70,type: 'number', },
     {
       field: 'Change_in_OI',
@@ -78,7 +73,12 @@ const columns = [
         
         maxWidth: 110,
       },
-      
+      {
+        field: 'Option',
+        headerName: 'Option',
+        
+        maxWidth: 110,
+      },
 
 
     

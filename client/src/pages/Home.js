@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import './styles/home.css';
+import Data2 from '../components/Data2';
 export default function Home() {
   const SERVER_HOST = 'http://localhost:8989';
   const sbl = [
@@ -23,6 +24,8 @@ export default function Home() {
   const [exp1,setExp1]= useState([])
   const [exp2,setExp2]= useState([])
   const [exp3,setExp3]= useState([])
+  const [optionVal,setOptVal]= useState('All')
+  
   useEffect(() => {
     const socket = io(SERVER_HOST);
     socket.on('connect', () => {
@@ -81,39 +84,51 @@ export default function Home() {
     };
   }, []);
     
-  const [symbol, setSymbol] = React.useState('ALLBANKS');
+  const [symbol, setSymbol] = React.useState('');
     const [expiry ,setExpiry] = React.useState('');
-    const [prize ,setPrize] = React.useState(null);
-    const [propD,setPropD] = React.useState(allbanksData)
-
+    const [propsData,setProps] = React.useState([])
+    const [filteredData,setFil] = React.useState(propsData) ;
   const handleSybl = (e) => {
     const { value} = e.target;
     setSymbol(value);
+    
     if(value===sbl[0]){
-      setPropD(allbanksData)
-    }else if(value===sbl[1]){
-      setPropD(mainIdxData)
-    }else if(value===sbl[2]){
-      setPropD(finData)
-    }else if(value===sbl[3]){
-      setPropD(midCapsData)
+      setProps(allbanksData)
+      setFil(allbanksData)
     }
-
+    else if(value===sbl[1]){
+      setProps(mainIdxData)
+      setFil(mainIdxData)
+    }else if(value===sbl[2]){
+      setProps(finData)
+      setFil(finData)
+    }
+    else if(value===sbl[3]){
+      setProps(midCapsData)
+      setFil(midCapsData)
+    }
+    
+    setOptVal("All")
+    
   };
   const handleExpiry = (e) => {
     const { value} = e.target;
     setExpiry(value)
   };
-  const handlePrize = (e) => {
+  
+  const handleOption = (e) => {
     const { value} = e.target;
-    setPrize(value)
+    setOptVal(value)
+    if(value!=='All'){
+      setFil(propsData.filter(data=>data.Option===value))
+      
+    }else{
+      setFil(propsData)
+    }
+    console.log(value,filteredData);
   };
 
-  
 
-const prizes = [
-    17220, 45012, 41110
-]
   return (
     <div className='home_page'>
         <div className='filters'>
@@ -139,36 +154,20 @@ const prizes = [
 
 
       {/* // For Expiry Date */}
-      <FormControl  sx={{ minWidth: 150 }}>
-        <InputLabel id="Exp_dt">Expiry Date</InputLabel>
-        <Select
-          labelId="Exp_dt"
-          id="expiry"
-          value={expiry}
-          label="Expiry Date"
-          onChange={handleExpiry}
-        >
-          {exp1.slice(0,exp1.length-1).map((name) => (
-            <MenuItem key={name} value={name}>
-              {name}
-            </MenuItem>
-          ))}
-          
-        </Select>
-      </FormControl>
+      
 
 
       {/* //For Strike Price */}
       <FormControl  sx={{ minWidth: 150 }}>
-        <InputLabel id="prize-label">Strike Prize</InputLabel>
+        <InputLabel id="option">Option Type</InputLabel>
         <Select
-          labelId="prize-label"
-          id="st_prize"
-          value={prize}
-          label="Strike Prize"
-          onChange={handlePrize}
+          labelId="option"
+          id="opt"
+          value={optionVal}
+          label="Option Type"
+          onChange={handleOption}
         >
-          {prizes.map((name) => (
+          {["All",'Call','Put'].map((name) => (
             <MenuItem key={name} value={name}>
               {name}
             </MenuItem>
@@ -179,7 +178,8 @@ const prizes = [
 
         </div>
         <div className='content'>
-            <Data2 propData = {allbanksData}/>
+        {/* (optionVal==="All")?propsData:filteredData */}
+            <Data2 propData = {filteredData}/>
         </div>
     </div>
   )
