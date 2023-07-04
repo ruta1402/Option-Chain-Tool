@@ -12,6 +12,8 @@ var idb = 0
 var idc = 0
 var idd = 0
 
+var optn_pr=0;
+
 
 
 function processMarketDataPacket(packetData, packetSize) {
@@ -59,6 +61,11 @@ function processMarketDataPacket(packetData, packetSize) {
     }
     //End of extract index
 
+    //check for option price
+    if(index.length==tradingSymbol.length)
+    {
+        optn_pr=lastTradedPrice;
+    }
     
     //Extract expiry date
     var expiryDate = tradingSymbol.substring(index.length, index.length + 7);
@@ -130,7 +137,7 @@ function processMarketDataPacket(packetData, packetSize) {
 
     //implied volatilty
     // Set the inputs
-    const optionPrice = 10.0; // Replace with the actual option price
+    const optionPrice =optn_pr;   //10.0; // Replace with the actual option price
     const underlyingPrice = lastTradedPrice; // Replace with the current underlying asset price
     const strikePrice = strikePriceInt; // Replace with the option's strike price
     const timeToExpiration = timeToMaturity/31536000000; // Replace with the time to expiration in years
