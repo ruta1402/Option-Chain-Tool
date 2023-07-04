@@ -1,2 +1,1 @@
-2.figure out how to store in a database with constant refresh
-3.frontend
+optionPrice pending
