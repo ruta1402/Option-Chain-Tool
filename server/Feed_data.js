@@ -144,18 +144,20 @@ function processMarketDataPacket(packetData, packetSize) {
     const optionPrice = opt_pr; //10.0; // Replace with the actual option price
     const underlyingPrice = lastTradedPrice; // Replace with the current underlying asset price
     const strikePrice = strikePriceInt; // Replace with the option's strike price
-    const timeToExpiration = timeToMaturity / 31536000000; // Replace with the time to expiration in years
-    // const riskFreeRate = ; // Replace with the risk-free interest rate
+    const timeToExpiration = timeToMaturity; // Replace with the time to expiration in years
+    const riskFreeRate = 0.05; // Replace with the risk-free interest rate
 
     // Calculate implied volatility
-    const impliedVolatility = bs.blackScholes(
-        optionPrice,
-        underlyingPrice,
-        strikePrice,
-        timeToExpiration,
-        0.05,
-        option
-    );
+    // const impliedVolatility = bs.blackScholes(
+    //     optionPrice,
+    //     underlyingPrice,
+    //     strikePrice,
+    //     timeToExpiration,
+    //     0.05,
+    //     option
+    // );
+
+    const impliedVolatility = calculateImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, option);
 
 
     const data = {
@@ -186,6 +188,79 @@ function processMarketDataPacket(packetData, packetSize) {
     return data
 
 }
+
+function calculateImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, optionType) {
+    const maxIterations = 100;
+    const tolerance = 0.0001;
+
+    let volatility = 0.5; // Initial guess for implied volatility
+    let iteration = 0;
+
+    while (iteration < maxIterations) {
+        const optionPriceCalc = blackScholesOptionPrice(
+            underlyingPrice,
+            strikePrice,
+            timeToExpiration,
+            riskFreeRate,
+            volatility,
+            optionType
+        );
+
+        const priceDifference = optionPriceCalc - optionPrice;
+
+        if (Math.abs(priceDifference) < tolerance) {
+            return volatility;
+        }
+
+        const vega = blackScholesVega(
+            underlyingPrice,
+            strikePrice,
+            timeToExpiration,
+            riskFreeRate,
+            volatility
+        );
+
+        volatility = volatility - priceDifference / vega;
+        iteration++;
+    }
+
+    throw new Error('Failed to converge on implied volatility.');
+}
+
+function blackScholesOptionPrice(underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, optionType) {
+    const d1 = (Math.log(underlyingPrice / strikePrice) + (riskFreeRate + volatility * volatility / 2) * timeToExpiration) / (volatility * Math.sqrt(timeToExpiration));
+    const d2 = d1 - volatility * Math.sqrt(timeToExpiration);
+
+    if (optionType === 'call') {
+        return underlyingPrice * cumulativeNormalDistribution(d1) - strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * cumulativeNormalDistribution(d2);
+    } else if (optionType === 'put') {
+        return strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * cumulativeNormalDistribution(-d2) - underlyingPrice * cumulativeNormalDistribution(-d1);
+    } else {
+        throw new Error('Invalid option type.');
+    }
+}
+
+function blackScholesVega(underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, volatility) {
+    const d1 = (Math.log(underlyingPrice / strikePrice) + (riskFreeRate + volatility * volatility / 2) * timeToExpiration) / (volatility * Math.sqrt(timeToExpiration));
+    return underlyingPrice * Math.sqrt(timeToExpiration) * standardNormalDistribution(d1);
+}
+
+function cumulativeNormalDistribution(x) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(x));
+    const d = 0.3989423 * Math.exp(-x * x / 2);
+    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+
+    if (x > 0) {
+        return 1 - p;
+    } else {
+        return p;
+    }
+}
+
+function standardNormalDistribution(x) {
+    return Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+}
+
 
 function getLongFromLittleEndian(data, offset) {
     let value = 0;
