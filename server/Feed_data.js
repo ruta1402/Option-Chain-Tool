@@ -18,7 +18,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const tradingSymbol = packetData.toString('utf8', 4, 34).replaceAll('\x00', '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42); //this is already epoch time
-    const date_ = new Date(timeStamp);
+    const date_ = new Date(timeStamp*1000);
     const year = date_.getFullYear();
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
@@ -32,7 +32,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const prevOpenInterest = getLongFromLittleEndian(packetData, 122);
     //End of extract relevant fields from the packet
 
-
+    // console.log(timeStamp);
     //Extract Index
     var a = "ALLBANKS";
     var b = "MAINIDX";
@@ -105,6 +105,12 @@ function processMarketDataPacket(packetData, packetSize) {
         targetYear = 2023;
     } else if (expiryDate.endsWith("24")) {
         targetYear = 2024;
+    } else if (expiryDate.endsWith("25")) {
+        targetYear = 2025;
+    } else if (expiryDate.endsWith("26")) {
+        targetYear = 2026;
+    } else if (expiryDate.endsWith("27")) {
+        targetYear = 2027;
     }
     //End of extract expiry date
 
@@ -144,7 +150,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const optionPrice = opt_pr; //10.0; // Replace with the actual option price
     const underlyingPrice = lastTradedPrice; // Replace with the current underlying asset price
     const strikePrice = strikePriceInt; // Replace with the option's strike price
-    const timeToExpiration = timeToMaturity / 31536000000; // Replace with the time to expiration in years
+    const timeToExpiration = timeToMaturity ; // Replace with the time to expiration in years
     // const riskFreeRate = ; // Replace with the risk-free interest rate
 
     // Calculate implied volatility

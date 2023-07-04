@@ -1,11 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
-
+import clsx from 'clsx';
 
 
 
 const columns = [
     { field: 'Index', headerName: 'Symbol', maxWidth: 110 },
+    {
+      field: 'Option',
+      headerName: 'Option',
+      
+      maxWidth: 110,
+      cellClassName: (params) => {
+        if (params.value == " ") {
+          return '';
+        }
+  
+        return clsx('super-app', {
+          call: params.value ==="call",
+          put: params.value ==="put",
+        });
+      },
+    },
     { field: 'Open_Interest', headerName: 'OI', maxWidth: 70,type: 'number', },
     {
       field: 'Change_in_OI',
@@ -31,12 +47,12 @@ const columns = [
       type: 'number',
       maxWidth: 110,
     },
-    {
-      field: 'CHNG1',
-      headerName: 'CHNG',
-      type: 'number',
-      maxWidth: 110,
-    }
+    // {
+    //   field: 'CHNG1',
+    //   headerName: 'CHNG',
+    //   type: 'number',
+    //   maxWidth: 110,
+    // }
     ,{
       field: 'Best_Bid_Quantity',
       headerName: 'BID QTY',
@@ -73,12 +89,7 @@ const columns = [
         
         maxWidth: 110,
       },
-      {
-        field: 'Option',
-        headerName: 'Option',
-        
-        maxWidth: 110,
-      },
+      
 
 
     
@@ -115,6 +126,21 @@ export default function Data2({propData}) {
         
         '& .MuiDataGrid-cell:hover': {
           color: 'primary.main',
+        },
+        '& .super-app-theme--cell': {
+          backgroundColor: 'rgba(224, 183, 60, 0.55)',
+          color: '#1a3e72',
+          fontWeight: '600',
+        },
+        '& .super-app.call': {
+          backgroundColor: 'rgba(157, 255, 118, 0.49)',
+          color: '#1a3e72',
+          fontWeight: '600',
+        },
+        '& .super-app.put': {
+          backgroundColor: '#d47483',
+          color: '#1a3e72',
+          fontWeight: '600',
         },
       }}
         experimentalFeatures={{ columnGrouping: true }}
