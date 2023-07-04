@@ -18,7 +18,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const tradingSymbol = packetData.toString('utf8', 4, 34).replaceAll('\x00', '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42); //this is already epoch time
-    const date_ = new Date(timeStamp*1000);
+    const date_ = new Date(timeStamp * 1000);
     const year = date_.getFullYear();
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
@@ -195,77 +195,6 @@ function processMarketDataPacket(packetData, packetSize) {
 
 }
 
-function calculateImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, optionType) {
-    const maxIterations = 100;
-    const tolerance = 0.0001;
-
-    let volatility = 0.5; // Initial guess for implied volatility
-    let iteration = 0;
-
-    while (iteration < maxIterations) {
-        const optionPriceCalc = blackScholesOptionPrice(
-            underlyingPrice,
-            strikePrice,
-            timeToExpiration,
-            riskFreeRate,
-            volatility,
-            optionType
-        );
-
-        const priceDifference = optionPriceCalc - optionPrice;
-
-        if (Math.abs(priceDifference) < tolerance) {
-            return volatility;
-        }
-
-        const vega = blackScholesVega(
-            underlyingPrice,
-            strikePrice,
-            timeToExpiration,
-            riskFreeRate,
-            volatility
-        );
-
-        volatility = volatility - priceDifference / vega;
-        iteration++;
-    }
-
-    throw new Error('Failed to converge on implied volatility.');
-}
-
-function blackScholesOptionPrice(underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, optionType) {
-    const d1 = (Math.log(underlyingPrice / strikePrice) + (riskFreeRate + volatility * volatility / 2) * timeToExpiration) / (volatility * Math.sqrt(timeToExpiration));
-    const d2 = d1 - volatility * Math.sqrt(timeToExpiration);
-
-    if (optionType === 'call') {
-        return underlyingPrice * cumulativeNormalDistribution(d1) - strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * cumulativeNormalDistribution(d2);
-    } else if (optionType === 'put') {
-        return strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * cumulativeNormalDistribution(-d2) - underlyingPrice * cumulativeNormalDistribution(-d1);
-    } else {
-        throw new Error('Invalid option type.');
-    }
-}
-
-function blackScholesVega(underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, volatility) {
-    const d1 = (Math.log(underlyingPrice / strikePrice) + (riskFreeRate + volatility * volatility / 2) * timeToExpiration) / (volatility * Math.sqrt(timeToExpiration));
-    return underlyingPrice * Math.sqrt(timeToExpiration) * standardNormalDistribution(d1);
-}
-
-function cumulativeNormalDistribution(x) {
-    const t = 1 / (1 + 0.2316419 * Math.abs(x));
-    const d = 0.3989423 * Math.exp(-x * x / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-
-    if (x > 0) {
-        return 1 - p;
-    } else {
-        return p;
-    }
-}
-
-function standardNormalDistribution(x) {
-    return Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
-}
 
 
 function getLongFromLittleEndian(data, offset) {
