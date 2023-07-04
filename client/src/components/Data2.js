@@ -118,14 +118,17 @@ export default function Data2({propData}) {
   
   return (
     <div className='mainpage' style={{display:'flex', justifyContent: 'center', alignItems: 'center'}}>
-    <div style={{ height: '100vh', width: '80%' }}>
+    <div style={{ height: '100vh', width: '90%', }}>
       <DataGrid
       sx={{
         boxShadow: 2,
         border: 2,
-        
+        fontSize:12,
         '& .MuiDataGrid-cell:hover': {
           color: 'primary.main',
+        },
+        '& .super-app-theme--header': {
+          backgroundColor: 'rgba(255, 7, 0, 0.55)',
         },
         '& .super-app-theme--cell': {
           backgroundColor: 'rgba(224, 183, 60, 0.55)',
@@ -146,7 +149,7 @@ export default function Data2({propData}) {
         experimentalFeatures={{ columnGrouping: true }}
         rows={rows}
         columns={columns}
-        rowHeight={50}
+        rowHeight={30}
         disableRowSelectionOnClick
         
       />
