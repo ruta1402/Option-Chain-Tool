@@ -12,16 +12,12 @@ var idb = 0
 var idc = 0
 var idd = 0
 
-var optn_pr=0;
-
-
-
 function processMarketDataPacket(packetData, packetSize) {
 
     // Extract relevant fields from the packet
     const tradingSymbol = packetData.toString('utf8', 4, 34).replaceAll('\x00', '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
-    const timeStamp = getLongFromLittleEndian(packetData, 42);  //this is already epoch time
+    const timeStamp = getLongFromLittleEndian(packetData, 42); //this is already epoch time
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
     const totalTradedVolume = getLongFromLittleEndian(packetData, 66);
@@ -44,29 +40,33 @@ function processMarketDataPacket(packetData, packetSize) {
     var len_symbol = tradingSymbol.length;
 
     var index = "";
+    let opt_pr;
 
     var id;
     if (tradingSymbol.startsWith(a)) {
         index = a;
+        opt_pr = 43982.50;
         id = ida++
     } else if (tradingSymbol.startsWith(b)) {
         index = b;
+        opt_pr = 18548.80;
         id = idb++
     } else if (tradingSymbol.startsWith(c)) {
         index = c;
+        opt_pr = 19403.60;
         id = idc++
     } else if (tradingSymbol.startsWith(d)) {
         index = d;
+        opt_pr = 7856.50;
         id = idd++
     }
     //End of extract index
 
     //check for option price
-    if(index.length==tradingSymbol.length)
-    {
-        optn_pr=lastTradedPrice;
+    if (index.length == tradingSymbol.length) {
+        optn_pr = lastTradedPrice;
     }
-    
+
     //Extract expiry date
     var expiryDate = tradingSymbol.substring(index.length, index.length + 7);
 
@@ -109,13 +109,13 @@ function processMarketDataPacket(packetData, packetSize) {
 
 
     //calculate epoch of expiry date
-    const expiry_Date = new Date(targetYear, targetMonth, date,15,30); 
+    const expiry_Date = new Date(targetYear, targetMonth, date, 15, 30);
     const epochTimeExpiry = Math.floor(expiry_Date.getTime());
     //End of epoch expiry 
-    
+
 
     //time to maturity
-    var timeToMaturity = epochTimeExpiry-timeStamp;
+    var timeToMaturity = epochTimeExpiry - timeStamp;
 
 
     //strike price
@@ -133,14 +133,14 @@ function processMarketDataPacket(packetData, packetSize) {
 
     //change in oi
     var chngInOI = openInterest - prevOpenInterest;
-   
+
 
     //implied volatilty
     // Set the inputs
-    const optionPrice =optn_pr;   //10.0; // Replace with the actual option price
+    const optionPrice = opt_pr; //10.0; // Replace with the actual option price
     const underlyingPrice = lastTradedPrice; // Replace with the current underlying asset price
     const strikePrice = strikePriceInt; // Replace with the option's strike price
-    const timeToExpiration = timeToMaturity/31536000000; // Replace with the time to expiration in years
+    const timeToExpiration = timeToMaturity / 31536000000; // Replace with the time to expiration in years
     // const riskFreeRate = ; // Replace with the risk-free interest rate
 
     // Calculate implied volatility
@@ -155,30 +155,30 @@ function processMarketDataPacket(packetData, packetSize) {
 
 
     const data = {
-            "id": id,
-            "Symbol": tradingSymbol,
-            "Option": option,
-            "Index": index,
-            "Expiry_Date": expiryDate,
-            "Strike_Price": strikePriceInt,
-            "Time_Stamp": timeStamp,
-            "Time_to_Maturity": timeToMaturity,
-            "Sequence": sequenceNumber,
-            "Last_Traded_Price": lastTradedPrice,
-            "Total_Traded_Volume": totalTradedVolume,
-            "Best_Bid": bestBid,
-            "Best_Ask": bestAsk,
-            "Best_Bid_Quantity": bestBidQty,
-            "Open_Interest": openInterest,
-            "Previous_Close_Price": prevClosePrice,
-            "Previous_Open_Interest": prevOpenInterest,
-            "Change_in_OI": chngInOI,
-            "Last_Traded_Quantity": lastTradedQuantity,
-            "Best_Ask_Quantity": bestAskQty,
-            "Implied_Volatility": impliedVolatility
+        "id": id,
+        "Symbol": tradingSymbol,
+        "Option": option,
+        "Index": index,
+        "Expiry_Date": expiryDate,
+        "Strike_Price": strikePriceInt,
+        "Time_Stamp": timeStamp,
+        "Time_to_Maturity": timeToMaturity,
+        "Sequence": sequenceNumber,
+        "Last_Traded_Price": lastTradedPrice,
+        "Total_Traded_Volume": totalTradedVolume,
+        "Best_Bid": bestBid,
+        "Best_Ask": bestAsk,
+        "Best_Bid_Quantity": bestBidQty,
+        "Open_Interest": openInterest,
+        "Previous_Close_Price": prevClosePrice,
+        "Previous_Open_Interest": prevOpenInterest,
+        "Change_in_OI": chngInOI,
+        "Last_Traded_Quantity": lastTradedQuantity,
+        "Best_Ask_Quantity": bestAskQty,
+        "Implied_Volatility": impliedVolatility
 
-        }
-        // console.log(data);
+    }
+    console.log(impliedVolatility);
     return data
 
 }
