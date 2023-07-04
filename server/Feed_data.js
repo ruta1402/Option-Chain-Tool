@@ -18,6 +18,8 @@ function processMarketDataPacket(packetData, packetSize) {
     const tradingSymbol = packetData.toString('utf8', 4, 34).replaceAll('\x00', '');
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42); //this is already epoch time
+    const date_ = new Date(timeStamp);
+    const year = date_.getFullYear();
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
     const totalTradedVolume = getLongFromLittleEndian(packetData, 66);
@@ -115,7 +117,9 @@ function processMarketDataPacket(packetData, packetSize) {
 
 
     //time to maturity
-    var timeToMaturity = epochTimeExpiry - timeStamp;
+    //var timeToMaturity = epochTimeExpiry - timeStamp;
+    var timeToMaturity = targetYear - year;
+
 
 
     //strike price
