@@ -5,7 +5,7 @@ const { DateTime } = require('luxon');
 const { normal } = require('jstat');
 const socketIO = require('socket.io');
 
-const bs = require("black-scholes");
+var iv = require("implied-volatility");
 
 var ida = 0
 var idb = 0
@@ -19,7 +19,7 @@ function processMarketDataPacket(packetData, packetSize) {
     const sequenceNumber = getLongFromLittleEndian(packetData, 34);
     const timeStamp = getLongFromLittleEndian(packetData, 42); //this is already epoch time
     const date_ = new Date(timeStamp * 1000);
-    const year = date_.getFullYear();
+    
     const lastTradedPrice = getLongFromLittleEndian(packetData, 50) / 100;
     const lastTradedQuantity = getLongFromLittleEndian(packetData, 58);
     const totalTradedVolume = getLongFromLittleEndian(packetData, 66);
@@ -120,12 +120,14 @@ function processMarketDataPacket(packetData, packetSize) {
     const expiry_Date = new Date(targetYear, targetMonth, date, 15, 30);
     const epochTimeExpiry = Math.floor(expiry_Date.getTime());
     //End of epoch expiry 
+    // console.log(epochTimeExpiry);
 
-
+    const year = new Date().getFullYear();
     //time to maturity
-    //var timeToMaturity = epochTimeExpiry - timeStamp;
-    var timeToMaturity = targetYear - year;
-
+    var timeToMaturity = epochTimeExpiry - timeStamp;
+    // var timeToMaturity = targetYear - year;
+    // console.log(targetYear,year);
+    // console.log(timeToMaturity);
 
 
     //strike price
@@ -150,11 +152,11 @@ function processMarketDataPacket(packetData, packetSize) {
     const optionPrice = opt_pr; //10.0; // Replace with the actual option price
     const underlyingPrice = lastTradedPrice; // Replace with the current underlying asset price
     const strikePrice = strikePriceInt; // Replace with the option's strike price
-    const timeToExpiration = timeToMaturity; // Replace with the time to expiration in years
+    const timeToExpiration = timeToMaturity/31556952000000; // Replace with the time to expiration in years
     const riskFreeRate = 0.05; // Replace with the risk-free interest rate
-
+    // console.log(timeToExpiration);
     // Calculate implied volatility
-    // const impliedVolatility = bs.blackScholes(
+    // var impliedVolatility = bs.blackScholes(
     //     optionPrice,
     //     underlyingPrice,
     //     strikePrice,
@@ -162,8 +164,10 @@ function processMarketDataPacket(packetData, packetSize) {
     //     0.05,
     //     option
     // );
-
-    const impliedVolatility = calculateImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, option);
+    var impliedVolatility = iv.getImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, .05, option);
+    impliedVolatility=(impliedVolatility).toFixed(2);
+    // console.log(impliedVolatility);
+    // const impliedVolatility = calculateImpliedVolatility(optionPrice, underlyingPrice, strikePrice, timeToExpiration, riskFreeRate, option);
 
 
     const data = {
@@ -187,7 +191,8 @@ function processMarketDataPacket(packetData, packetSize) {
         "Change_in_OI": chngInOI,
         "Last_Traded_Quantity": lastTradedQuantity,
         "Best_Ask_Quantity": bestAskQty,
-        "Implied_Volatility": impliedVolatility
+        "Implied_Volatility": impliedVolatility,
+        "change": prevClosePrice- openInterest
 
     }
     console.log(impliedVolatility);

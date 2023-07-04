@@ -47,12 +47,12 @@ const columns = [
       type: 'number',
       maxWidth: 110,
     },
-    // {
-    //   field: 'CHNG1',
-    //   headerName: 'CHNG',
-    //   type: 'number',
-    //   maxWidth: 110,
-    // }
+    {
+      field: 'change',
+      headerName: 'CHNG',
+      type: 'number',
+      maxWidth: 110,
+    }
     ,{
       field: 'Best_Bid_Quantity',
       headerName: 'BID QTY',
