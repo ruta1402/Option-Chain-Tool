@@ -24,7 +24,7 @@ export default function Home() {
   // const [exp1,setExp1]= useState([])
   // const [exp2,setExp2]= useState([])
   // const [exp3,setExp3]= useState([])
-  const [optionVal,setOptVal]= useState('All')
+  
   
   
   function sameDataExist(arr,data,func){
@@ -55,6 +55,7 @@ export default function Home() {
         const obj =allbanksData.find((o,i) => {
           if(o.Symbol === data.Symbol)
           {
+            console.log("1 u: ",i);
             setAllbanksData(prev=>prev[i]=data)
             
           }
@@ -80,6 +81,7 @@ export default function Home() {
         const obj =mainIdxData.find((o,i) => {
           if(o.Symbol === data.Symbol)
           {
+            console.log("2 u: ",i);
             setMainIdxData(prev=>prev[i]=data)
             
           }
@@ -102,6 +104,7 @@ export default function Home() {
         const obj =finData.find((o,i) => {
           if(o.Symbol === data.Symbol)
           {
+            console.log("3 u: ",i);
             setFinData(prev=>prev[i]=data)
             
           }
@@ -124,6 +127,7 @@ export default function Home() {
         const obj =midCapsData.find((o,i) => {
           if(o.Symbol === data.Symbol)
           {
+            console.log("4 u: ",i);
             setMidCapsData(prev=>prev[i]=data)
             
           }
@@ -157,9 +161,7 @@ export default function Home() {
   const handleSybl = (e) => {
     const { value} = e.target;
     setSymbol(value);
-    
-    
-    setOptVal("All")
+
     
   };
   const handleExpiry = (e) => {
@@ -167,17 +169,7 @@ export default function Home() {
     setExpiry(value)
   };
   
-  const handleOption = (e) => {
-    const { value} = e.target;
-    setOptVal(value)
-    // if(value!=='All'){
-    //   setFil(propsData.filter(data=>data.Option===value))
-      
-    // }else{
-    //   setFil(propsData)
-    // }
-    console.log(value,filteredData);
-  };
+  
   useEffect(()=>{
     console.log("Alll banks",allbanksData.length);
     console.log("2: ",mainIdxData.length);
